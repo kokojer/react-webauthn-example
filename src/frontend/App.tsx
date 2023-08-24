@@ -1,8 +1,11 @@
 import reactLogo from "/react.svg";
 import webauthnLogo from "/webauthn.svg";
 import "./App.css";
+import { login, register } from "./webauthn.ts";
+import { useState } from "react";
 
 function App() {
+  const [userName, setUserName] = useState("");
   return (
     <>
       <div>
@@ -14,10 +17,14 @@ function App() {
         </a>
       </div>
       <h1>WebAuthn + React example</h1>
-      <input placeholder="Login" />
+      <input
+        placeholder="Login"
+        value={userName}
+        onChange={(e) => setUserName(e.target.value)}
+      />
       <div className="buttonContainer">
-        <button>Registration</button>
-        <button>Login</button>
+        <button onClick={() => register(userName)}>Registration</button>
+        <button onClick={() => login(userName)}>Login</button>
       </div>
     </>
   );

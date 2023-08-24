@@ -1,0 +1,9 @@
+{
+  "execMap": {
+    "ts": "ts-node"
+  },
+  "watch": ["src/backend"],
+  "ext": "ts,json",
+  "exec": "ts-node-esm -T ./src/backend/server.ts"
+
+}
