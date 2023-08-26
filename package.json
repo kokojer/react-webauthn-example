@@ -23,7 +23,8 @@
     "http-proxy-middleware": "^2.0.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "sqlite3": "^5.1.6"
+    "sqlite3": "^5.1.6",
+    "ts-node": "^10.9.1"
   },
   "devDependencies": {
     "@simplewebauthn/typescript-types": "^8.0.0",

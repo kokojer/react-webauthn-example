@@ -8,7 +8,6 @@ import {
   verifyRegistrationResponse,
 } from "@simplewebauthn/server";
 import { RegistrationResponseJSON } from "@simplewebauthn/typescript-types";
-import Cbor from "cbor";
 
 interface ExtendedRegistrationResponseJSON extends RegistrationResponseJSON {
   login: string;
@@ -16,11 +15,10 @@ interface ExtendedRegistrationResponseJSON extends RegistrationResponseJSON {
 
 const router = express.Router();
 
-const WEBAUTHN_DOMAIN = process.env.WEBAUTHN_DOMAIN;
-
 const rpID = "localhost";
 
 const origin = `http://localhost:5000`;
+
 router.post("/register", async (req, res) => {
   try {
     const { login } = req.body;
@@ -65,7 +63,7 @@ router.post("/make-new-credential", async (req, res) => {
     const attestation: ExtendedRegistrationResponseJSON = req.body;
     //Костыль - проверяю наличие ожидаемого челенджа ручками, т.к verifyRegistrationResponse не принимает async функцию
     const challenge = JSON.parse(
-      atob(attestation?.response?.clientDataJSON),
+      atob(attestation?.response?.clientDataJSON)
     ).challenge;
 
     const expectedChallenge = await Persistence.ChallengeDAO.getChallengeById({
@@ -83,25 +81,27 @@ router.post("/make-new-credential", async (req, res) => {
         expectedOrigin: origin,
         expectedRPID: rpID,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       return res.status(400).send({ error: error.message });
     }
-    console.log(verification);
+
     if (verification.verified && verification.registrationInfo) {
       await Persistence.UserDAO.createUser({
         login: attestation.login,
         credentialId: encodeBase64(verification.registrationInfo.credentialID),
         publicKey: encodeBase64(
-          verification.registrationInfo.credentialPublicKey,
+          verification.registrationInfo.credentialPublicKey
         ),
         signCount: verification.registrationInfo?.counter,
       });
     }
     // Load user by credentialId
-    const user = await Persistence.UserDAO.getUserByCredentialId({
-      credentialId: encodeBase64(verification.registrationInfo?.credentialID),
-    });
+    const user =
+      verification.registrationInfo?.credentialID &&
+      (await Persistence.UserDAO.getUserByCredentialId({
+        credentialId: encodeBase64(verification.registrationInfo?.credentialID),
+      }));
     res.json({ login: user.login });
   } catch (e) {
     console.log("Error on /api/make-new-credential", e);
@@ -121,7 +121,6 @@ router.post("/login", async (req, res) => {
         {
           id: Buffer.from(user.credentialId, "base64url"),
           type: "public-key",
-          transports: [],
         },
       ],
     });
@@ -148,7 +147,7 @@ router.post("/verify-assertion", async (req, res) => {
     });
 
     const challenge = JSON.parse(
-      atob(assertion?.response?.clientDataJSON),
+      atob(assertion?.response?.clientDataJSON)
     ).challenge;
 
     const expectedChallenge = (
@@ -177,7 +176,7 @@ router.post("/verify-assertion", async (req, res) => {
           credentialID: Buffer.from(user.credentialId, "base64url"),
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       return res.status(400).send({ error: error.message });
     }

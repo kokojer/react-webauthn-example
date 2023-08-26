@@ -10,14 +10,24 @@ const COLUMNS = [
   { name: "c_signcount", alias: "signCount" },
 ];
 
-const convertRow = (row: unknown) => {
+const convertRow = (row: any) => {
   return {
     ...row,
     publicKey: JSON.parse(row.publicKey),
   };
 };
 
-const createUser = ({ login, credentialId, publicKey, signCount }) => {
+const createUser = ({
+  login,
+  credentialId,
+  publicKey,
+  signCount,
+}: {
+  login: string;
+  credentialId: string;
+  publicKey: string;
+  signCount: number;
+}) => {
   return run(
     "INSERT INTO t_user (c_login, c_credentialid, c_publickey, c_signcount) values($login, $credentialId, $publicKey, $signCount)",
     {
@@ -25,7 +35,7 @@ const createUser = ({ login, credentialId, publicKey, signCount }) => {
       $credentialId: credentialId,
       $publicKey: JSON.stringify(publicKey),
       $signCount: signCount,
-    },
+    }
   );
 };
 
@@ -36,31 +46,39 @@ const getUserByLogin = ({ login }: { login: string }): Promise<User> => {
     (row) => {
       if (!row) return;
       return convertRow(row);
-    },
+    }
   );
 };
 
-const getUserByCredentialId = ({ credentialId }) => {
+const getUserByCredentialId = ({ credentialId }: { credentialId: string }) => {
   return get(
     `SELECT ${makeSelect(
-      COLUMNS,
+      COLUMNS
     )} FROM t_user WHERE c_credentialid = $credentialId`,
     { $credentialId: credentialId },
     (row) => {
       if (!row) return;
       return convertRow(row);
-    },
+    }
   );
 };
 
-const updateSignCount = ({ credentialId, oldSignCount, newSignCount }) => {
+const updateSignCount = ({
+  credentialId,
+  oldSignCount,
+  newSignCount,
+}: {
+  credentialId: string;
+  oldSignCount: number;
+  newSignCount: number;
+}) => {
   return run(
     "UPDATE t_user SET c_signcount = $newSignCount WHERE c_credentialid = $credentialId and c_signcount = $oldSignCount",
     {
       $credentialId: credentialId,
       $oldSignCount: oldSignCount,
       $newSignCount: newSignCount,
-    },
+    }
   );
 };
 
